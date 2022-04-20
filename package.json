@@ -1,0 +1,24 @@
+{
+  "name": "beach-subscribe-poc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "beach-subscribe-poc",
+  "author": "Anthony Pogliano",
+  "keywords": [
+    "gatsby"
+  ],
+  "scripts": {
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean"
+  },
+  "dependencies": {
+    "gatsby": "^4.12.1",
+    "gatsby-plugin-theme-ui": "^0.14.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "theme-ui": "^0.14.2"
+  }
+}
