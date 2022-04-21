@@ -3,6 +3,12 @@ import { Box, Button, Flex } from 'theme-ui'
 
 // markup
 const IndexPage = () => {
+  const dataUrl = `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/hello`
+  const clickHandler = () => {
+    fetch(dataUrl)
+      .then((res) => res.json())
+      .then((data) => console.log(data))
+  }
   return (
     <main>
       <Box
@@ -22,7 +28,9 @@ const IndexPage = () => {
           THIS IS WHERE TWEETS WILL BE
         </Box>
         <Flex sx={{ width: '100%' }}>
-          <Button sx={{ color: 'black' }}>CLICK ME</Button>
+          <Button sx={{ color: 'black' }} onClick={clickHandler}>
+            CLICK ME
+          </Button>
         </Flex>
       </Box>
     </main>
