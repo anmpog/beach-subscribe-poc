@@ -1,3 +1,6 @@
 [build]
-command="yarn run build"
-functions="lambda"
+  functions="lambda"
+  port=8888
+  envFiles=[".env"]
+
+
