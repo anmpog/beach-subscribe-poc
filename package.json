@@ -9,10 +9,11 @@
   ],
   "scripts": {
     "develop": "gatsby develop",
+    "build": "gatsby build",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "start": "netlify-lambda serve netlify/functions",
-    "build": "netlify-lambda build netlify/functions"
+    "start:lambda": "netlify-lambda serve netlify/functions",
+    "build:lambda": "netlify-lambda build netlify/functions"
   },
   "dependencies": {
     "@emotion/react": "^11.9.0",
