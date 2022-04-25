@@ -12,8 +12,9 @@
     "build": "gatsby build",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "start:lambda": "netlify-lambda serve netlify/functions",
-    "build:lambda": "netlify-lambda build netlify/functions"
+    "start:lambda": "netlify-lambda serve functions",
+    "build:lambda": "netlify-lambda build functions",
+    "prod": "yarn run build; yarn run build:lambda"
   },
   "dependencies": {
     "@emotion/react": "^11.9.0",
