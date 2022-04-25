@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Box, Button, Flex } from 'theme-ui'
 const dataUrl = process.env.GATSBY_STAGE
   ? `.netlify/functions/hello`
-  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/helrrlo`
+  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/hello`
 
 const Tweet = ({ data }) => {
   return (
