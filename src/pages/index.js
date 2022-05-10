@@ -1,54 +1,77 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Button, Flex } from 'theme-ui'
-const dataUrl = process.env.GATSBY_STAGE
-  ? `.netlify/functions/hello`
-  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/hello`
 
-const Tweet = ({ data }) => {
-  return (
-    <Box
-      sx={{
-        background: 'white',
-        padding: '10px',
-        my: '3px',
-        borderRadius: '0.2rem',
-      }}
-    >
-      {data}
-    </Box>
-  )
-}
+const dataUrl = process.env.GATSBY_STAGE
+  ? `.netlify/functions/getAuthToken`
+  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/getAuthToken`
+
+const postTweetUrl = process.env.GATSBY_STAGE
+  ? `.netlify/functions/postTweet`
+  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/postTweet`
 
 const IndexPage = () => {
-  const [tweets, setTweets] = useState([])
-  const [loading, setLoading] = useState(false)
-  const isMounted = useRef(false)
+  const [authedStatus, setAuthedStatus] = useState(false)
+  const [tweetInput, setTweetInput] = useState('')
 
-  const fetchTweets = async () => {
-    setLoading(true)
-    fetch(dataUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Tweets before setting data: ', tweets)
-        setTweets((tweets) => [...tweets, data.data[0].text])
-        console.log('Tweets after setting data: ', tweets)
-      })
-      .catch((error) => {
-        console.log(
-          'There was an error returning data from the netlify func: ',
-          error,
-        )
-      })
+  // Handle initial token request
+  const handleAuthButtonClick = async () => {
+    try {
+      const res = await fetch(dataUrl)
+      const data = await res.json()
+      const params = new URLSearchParams(data)
+      const authToken = params.get('oauth_token')
+      console.log('the authToken:', authToken)
+      window.open(
+        `https://api.twitter.com/oauth/authorize?oauth_token=${authToken}`,
+        '_blank',
+        'location=yes, popup=yes, width=650, height=800',
+      )
+    } catch (err) {
+      console.error(
+        'There was an error starting the authentication process: ',
+        err,
+      )
+    }
   }
 
+  // Control input
+  const handleInputChange = (event) => {
+    setTweetInput(event)
+  }
+
+  // Post tweet w/ postTweet endpoint
+  const handlePostTweet = async (event) => {
+    event.preventDefault()
+    let twitterAccessToken = localStorage.getItem('oauthAccessToken')
+    let twitterAccessTokenSecret = localStorage.getItem(
+      'oauthAccessTokenSecret',
+    )
+    let tweetBody = tweetInput
+    const res = await fetch(postTweetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accessToken: twitterAccessToken,
+        accessTokenSecret: twitterAccessTokenSecret,
+        tweet: tweetBody,
+      }),
+    })
+    let data = await res.json()
+    console.log('Data that came back from Post Tweet: ', data)
+  }
+
+  // Check if correct tokens exist to use twitter Api
   useEffect(() => {
-    if (!isMounted.current) {
-      return
-    } else {
-      fetchTweets()
-      setLoading(false)
+    let twitterAccessToken = localStorage.getItem('oauthAccessToken')
+    let twitterAccessTokenSecret = localStorage.getItem(
+      'oauthAccessTokenSecret',
+    )
+
+    if (twitterAccessToken && twitterAccessTokenSecret) {
+      setAuthedStatus(true)
     }
-  }, [loading])
+    return
+  }, [])
 
   return (
     <main>
@@ -63,7 +86,7 @@ const IndexPage = () => {
           padding: '2rem',
         }}
       >
-        <h2>Tweets</h2>
+        <h2>Beach Subscribe Twitter POC</h2>
         <Box
           sx={{
             width: '100%',
@@ -72,14 +95,35 @@ const IndexPage = () => {
             marginBottom: '25px',
           }}
         >
-          {!tweets.length && <p>There are no tweets</p>}
-          {tweets.length > 0 && tweets.map((tweet) => <Tweet data={tweet} />)}
+          <Flex sx={{ width: '100%', justifyContent: 'center' }}>
+            {authedStatus && (
+              <Flex sx={{ flexDirection: 'column' }}>
+                <h2>You're authed. You can post a tweet.</h2>
+                <Box as="form" onSubmit={(event) => handlePostTweet(event)}>
+                  <label htmlFor="tweet-body">
+                    Enter a tweet:
+                    <input
+                      name="tweet-body"
+                      maxLength="280"
+                      type="text"
+                      value={tweetInput}
+                      onChange={(event) =>
+                        handleInputChange(event.target.value)
+                      }
+                    />
+                  </label>
+                  <p>{tweetInput}</p>
+                  <input type="submit" value="Send Tweet" />
+                </Box>
+              </Flex>
+            )}
+            {!authedStatus && (
+              <Button sx={{ color: 'black' }} onClick={handleAuthButtonClick}>
+                Auth as anmpog
+              </Button>
+            )}
+          </Flex>
         </Box>
-        <Flex sx={{ width: '100%', justifyContent: 'center' }}>
-          <Button sx={{ color: 'black' }} onClick={fetchTweets}>
-            Fetch Tweet
-          </Button>
-        </Flex>
       </Box>
     </main>
   )
