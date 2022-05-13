@@ -1,5 +1,4 @@
 const axios = require('axios')
-const token = process.env.TWITTER_API_BEARER_TOKEN
 
 exports.handler = async function (event, context, callback) {
   // Step 3 - POST oauth/access_token
