@@ -75,46 +75,89 @@ const IndexPage = () => {
 
   return (
     <main>
-      <Box
+      <Flex
         sx={{
           width: '800px',
+          flexDirection: 'column',
           border: '2px solid royalblue',
           borderRadius: '0.2rem',
           margin: '0 auto',
           height: '800px',
           backgroundColor: 'cornflowerblue',
-          padding: '2rem',
+          padding: '0 2rem',
         }}
       >
-        <h2>Beach Subscribe Twitter POC</h2>
+        <Flex
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <h2>Beach Subscribe Twitter POC</h2>
+          <h3>{authedStatus ? 'Authorized' : 'Not Authorized'}</h3>
+        </Flex>
         <Box
           sx={{
             width: '100%',
             border: '1px solid lightblue',
             padding: '2rem',
             marginBottom: '25px',
+            flex: '1 0 auto',
           }}
         >
-          <Flex sx={{ width: '100%', justifyContent: 'center' }}>
+          <Flex
+            as="nav"
+            sx={{
+              width: '100%',
+              justifyContent: 'flex-end',
+              border: '2px solid red',
+              py: '15px',
+              background: 'lightgray'
+            }}
+          >
+            <Box>TEST</Box>
+          </Flex>
+          <Flex
+            sx={{
+              width: '100%',
+              height: '100%',
+            }}
+          >
             {authedStatus && (
-              <Flex sx={{ flexDirection: 'column' }}>
-                <h2>You're authed. You can post a tweet.</h2>
-                <Box as="form" onSubmit={(event) => handlePostTweet(event)}>
-                  <label htmlFor="tweet-body">
-                    Enter a tweet:
-                    <input
-                      name="tweet-body"
-                      maxLength="280"
-                      type="text"
-                      value={tweetInput}
-                      onChange={(event) =>
-                        handleInputChange(event.target.value)
-                      }
-                    />
-                  </label>
-                  <p>{tweetInput}</p>
-                  <input type="submit" value="Send Tweet" />
-                </Box>
+              <Flex
+                as="form"
+                onSubmit={(event) => handlePostTweet(event)}
+                sx={{
+                  flexDirection: 'column',
+                  width: '100%',
+                  alignItems: 'center',
+                  height: '33.33%',
+                }}
+              >
+                <label
+                  htmlFor="tweet-body"
+                  style={{
+                    padding: '15px 0px',
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  Enter a tweet:
+                  <input
+                    name="tweet-body"
+                    maxLength="280"
+                    type="text"
+                    value={tweetInput}
+                    onChange={(event) => handleInputChange(event.target.value)}
+                    style={{
+                      marginTop: '10px',
+                      borderRadius: '0.2rem',
+                    }}
+                  />
+                </label>
+                <input type="submit" value="Send Tweet!" />
               </Flex>
             )}
             {!authedStatus && (
@@ -124,7 +167,7 @@ const IndexPage = () => {
             )}
           </Flex>
         </Box>
-      </Box>
+      </Flex>
     </main>
   )
 }
