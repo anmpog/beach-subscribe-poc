@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Button, Flex } from 'theme-ui'
+import MagicBell, {
+  FloatingNotificationInbox,
+} from '@magicbell/magicbell-react'
 
 const dataUrl = process.env.GATSBY_STAGE
   ? `.netlify/functions/getAuthToken`
@@ -8,6 +11,12 @@ const dataUrl = process.env.GATSBY_STAGE
 const postTweetUrl = process.env.GATSBY_STAGE
   ? `.netlify/functions/postTweet`
   : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/postTweet`
+
+const magicBellApiKey = process.env.MAGIC_BELL_API_KEY
+console.log('Api key for magic bell: ', magicBellApiKey)
+
+console.log('Gatsby stage: ', process.env.GATSBY_STAGE)
+console.log('Twitter API: ', process.env.TWITTER_API_KEY)
 
 const IndexPage = () => {
   const [authedStatus, setAuthedStatus] = useState(false)
@@ -113,10 +122,21 @@ const IndexPage = () => {
               justifyContent: 'flex-end',
               border: '2px solid red',
               py: '15px',
-              background: 'lightgray'
+              background: 'lightgray',
             }}
           >
-            <Box>TEST</Box>
+            <MagicBell
+              apiKey={magicBellApiKey}
+              userExternalId={'poglianoster@gmail.com'}
+            >
+              {(props) => (
+                <FloatingNotificationInbox
+                  width={400}
+                  height={500}
+                  {...props}
+                />
+              )}
+            </MagicBell>
           </Flex>
           <Flex
             sx={{
