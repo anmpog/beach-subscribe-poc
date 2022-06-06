@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Button, Flex } from 'theme-ui'
-import MagicBell, {
-  FloatingNotificationInbox,
-} from '@magicbell/magicbell-react'
 
 const dataUrl = process.env.GATSBY_STAGE
   ? `.netlify/functions/getAuthToken`
@@ -12,17 +9,22 @@ const postTweetUrl = process.env.GATSBY_STAGE
   ? `.netlify/functions/postTweet`
   : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/postTweet`
 
-const magicBellApiKey = process.env.MAGIC_BELL_API_KEY
-console.log('Api key for magic bell: ', magicBellApiKey)
-
-console.log('Gatsby stage: ', process.env.GATSBY_STAGE)
-console.log('Twitter API: ', process.env.TWITTER_API_KEY)
+const notifyUrl = process.env.GATSBY_STAGE
+  ? `.netlify/functions/notify`
+  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/notify`
 
 const IndexPage = () => {
   const [authedStatus, setAuthedStatus] = useState(false)
-  const [tweetInput, setTweetInput] = useState('')
+  const [broadcastInput, setBroadcastInput] = useState('')
+  const broadcastChannels = ['safebeachday', 'text', 'twitter']
+  const selectedChannels = broadcastChannels.map((channel) => {
+    return { channelName: channel, channelSelected: false }
+  })
+  const [selectedBroadcastChannels, setSelectedBroadcastChannels] = useState(
+    selectedChannels,
+  )
 
-  // Handle initial token request
+  // Handle initial Twitter token request
   const handleAuthButtonClick = async () => {
     try {
       const res = await fetch(dataUrl)
@@ -43,9 +45,22 @@ const IndexPage = () => {
     }
   }
 
-  // Control input
+  // Control tweet text input
   const handleInputChange = (event) => {
-    setTweetInput(event)
+    setBroadcastInput(event)
+  }
+
+  // Control checkbox inputs
+  const handleChannelSelect = (selectedChannelName) => {
+    const updatedChannelSelection = selectedBroadcastChannels.map((channel) => {
+      if (channel.channelName === selectedChannelName) {
+        return { ...channel, channelSelected: !channel.channelSelected }
+      }
+
+      return channel
+    })
+
+    setSelectedBroadcastChannels(updatedChannelSelection)
   }
 
   // Post tweet w/ postTweet endpoint
@@ -55,7 +70,7 @@ const IndexPage = () => {
     let twitterAccessTokenSecret = localStorage.getItem(
       'oauthAccessTokenSecret',
     )
-    let tweetBody = tweetInput
+    let tweetBody = broadcastInput
     const res = await fetch(postTweetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -69,7 +84,13 @@ const IndexPage = () => {
     console.log('Data that came back from Post Tweet: ', data)
   }
 
-  // Check if correct tokens exist to use twitter Api
+  const handleNotify = async () => {
+    const res = await fetch(notifyUrl)
+    const data = await res.json()
+    console.log('Data from notify route: ', data)
+  }
+
+  // Check if correct tokens exist to use twitter Api and control UI
   useEffect(() => {
     let twitterAccessToken = localStorage.getItem('oauthAccessToken')
     let twitterAccessTokenSecret = localStorage.getItem(
@@ -86,105 +107,151 @@ const IndexPage = () => {
     <main>
       <Flex
         sx={{
-          width: '800px',
+          width: '600px',
           flexDirection: 'column',
           border: '2px solid royalblue',
           borderRadius: '0.2rem',
           margin: '0 auto',
           height: '800px',
-          backgroundColor: 'cornflowerblue',
-          padding: '0 2rem',
+          marginTop: '50px',
         }}
       >
         <Flex
           sx={{
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             alignItems: 'center',
             flexWrap: 'wrap',
+            position: 'relative',
+            height: '75px',
+            width: '100%',
+            backgroundColor: '#5477d4',
           }}
         >
-          <h2>Beach Subscribe Twitter POC</h2>
-          <h3>{authedStatus ? 'Authorized' : 'Not Authorized'}</h3>
+          <h2 style={{ color: 'white' }}>Broadcast Safety Message</h2>
+          <Button
+            sx={{
+              borderRadius: '100%',
+              padding: '10px',
+              margin: '0px',
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              height: '10px',
+              width: '10px',
+              bg: 'gray',
+            }}
+            onClick={() => console.log('Close dialogue button clicked')}
+          >
+            x
+          </Button>
         </Flex>
         <Box
           sx={{
             width: '100%',
             border: '1px solid lightblue',
-            padding: '2rem',
+            padding: '1rem',
             marginBottom: '25px',
             flex: '1 0 auto',
           }}
         >
-          <Flex
-            as="nav"
-            sx={{
-              width: '100%',
-              justifyContent: 'flex-end',
-              border: '2px solid red',
-              py: '15px',
-              background: 'lightgray',
-            }}
-          >
-            <MagicBell
-              apiKey={magicBellApiKey}
-              userExternalId={'poglianoster@gmail.com'}
-            >
-              {(props) => (
-                <FloatingNotificationInbox
-                  width={400}
-                  height={500}
-                  {...props}
-                />
-              )}
-            </MagicBell>
-          </Flex>
           <Flex
             sx={{
               width: '100%',
               height: '100%',
             }}
           >
-            {authedStatus && (
-              <Flex
-                as="form"
-                onSubmit={(event) => handlePostTweet(event)}
-                sx={{
-                  flexDirection: 'column',
+            <Flex
+              as="form"
+              onSubmit={(event) => {
+                event.preventDefault()
+                // console.log('The checkboxes: ', checkedState)
+                console.log('The text area state: ', broadcastInput)
+                console.log('The checkbox sate: ', selectedBroadcastChannels)
+              }}
+              sx={{
+                flexDirection: 'column',
+                width: '100%',
+                alignItems: 'center',
+              }}
+            >
+              <label
+                htmlFor="tweet-body"
+                style={{
                   width: '100%',
-                  alignItems: 'center',
-                  height: '33.33%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '0px',
                 }}
               >
-                <label
-                  htmlFor="tweet-body"
+                Safety Message:
+                <textarea
+                  name="tweet-body"
+                  maxLength="280"
+                  type="text"
+                  value={broadcastInput}
+                  placeholder={'Add text'}
+                  onChange={(event) => handleInputChange(event.target.value)}
                   style={{
-                    padding: '15px 0px',
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
+                    marginTop: '10px',
+                    borderRadius: '0.5rem',
+                    height: '350px',
+                    border: '2px solid lightgray',
+                    resize: 'none',
+                    padding: '0.5rem',
+                    fontFamily: 'sans-serif',
+                    marginBottom: '0px',
                   }}
+                />
+              </label>
+              <fieldset
+                style={{
+                  marginTop: '25px',
+                  width: '100%',
+                  flexWrap: 'wrap',
+                  border: 'none',
+                }}
+              >
+                <legend>Choose Broadcast Channels:</legend>
+                {selectedBroadcastChannels.map((channel, index) => {
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <input
+                        key={index}
+                        type="checkbox"
+                        id={channel.channelName}
+                        name={channel.channelName}
+                        value={channel.channelName}
+                        checked={channel.channelSelected}
+                        onChange={() =>
+                          handleChannelSelect(channel.channelName)
+                        }
+                      />
+                      <label htmlFor={channel.channelName}>
+                        {channel.channelName}
+                      </label>
+                    </div>
+                  )
+                })}
+              </fieldset>
+              <Flex
+                sx={{
+                  width: '100%',
+                  justifyContent: 'flex-end',
+                  marginTop: '25px',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <Button variant="naked">Cancel</Button>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  sx={{ width: '125px' }}
                 >
-                  Enter a tweet:
-                  <input
-                    name="tweet-body"
-                    maxLength="280"
-                    type="text"
-                    value={tweetInput}
-                    onChange={(event) => handleInputChange(event.target.value)}
-                    style={{
-                      marginTop: '10px',
-                      borderRadius: '0.2rem',
-                    }}
-                  />
-                </label>
-                <input type="submit" value="Send Tweet!" />
+                  Preview
+                </Button>
               </Flex>
-            )}
-            {!authedStatus && (
-              <Button sx={{ color: 'black' }} onClick={handleAuthButtonClick}>
-                Auth as anmpog
-              </Button>
-            )}
+            </Flex>
           </Flex>
         </Box>
       </Flex>

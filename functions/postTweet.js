@@ -1,11 +1,8 @@
 const axios = require('axios')
 const crypto = require('crypto')
 const OAuth = require('oauth-1.0a')
-// // Keys
-// const consumerKey = process.env.TWITTER_API_KEY
-// const consumerSecret = process.env.TWITTER_API_KEY_SECRET
-// const accessToken = clientData.accessToken
-// const accessTokenSecret = clientData.accessTokenSecret
+
+
 
 exports.handler = async function (event, context, callback) {
   // // // Step 3 - POST oauth/access_token // // //
