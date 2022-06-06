@@ -14,14 +14,16 @@ const notifyUrl = process.env.GATSBY_STAGE
   : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/notify`
 
 const IndexPage = () => {
+  // Hard-coding broadcast channels, but envision that these would come from some other source/config file
+  const broadcastChannels = ['safebeachday', 'text', 'twitter']
+
+  // Setting state values w/ hooks where appropriate
   const [authedStatus, setAuthedStatus] = useState(false)
   const [broadcastInput, setBroadcastInput] = useState('')
-  const broadcastChannels = ['safebeachday', 'text', 'twitter']
-  const selectedChannels = broadcastChannels.map((channel) => {
-    return { channelName: channel, channelSelected: false }
-  })
   const [selectedBroadcastChannels, setSelectedBroadcastChannels] = useState(
-    selectedChannels,
+    broadcastChannels.map((channel) => {
+      return { channelName: channel, channelSelected: false }
+    }),
   )
 
   // Handle initial Twitter token request
@@ -84,10 +86,19 @@ const IndexPage = () => {
     console.log('Data that came back from Post Tweet: ', data)
   }
 
+  // Post data to Courier to send email, sms, or update the SBD Courier notification panel
   const handleNotify = async () => {
     const res = await fetch(notifyUrl)
     const data = await res.json()
     console.log('Data from notify route: ', data)
+  }
+
+  // Handle form submission
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    console.log('Form submission attempted')
+    console.log('Text area values: ', broadcastInput)
+    console.log('Channel selection info: ', selectedBroadcastChannels)
   }
 
   // Check if correct tokens exist to use twitter Api and control UI
@@ -162,12 +173,7 @@ const IndexPage = () => {
           >
             <Flex
               as="form"
-              onSubmit={(event) => {
-                event.preventDefault()
-                // console.log('The checkboxes: ', checkedState)
-                console.log('The text area state: ', broadcastInput)
-                console.log('The checkbox sate: ', selectedBroadcastChannels)
-              }}
+              onSubmit={(event) => handleSubmit(event)}
               sx={{
                 flexDirection: 'column',
                 width: '100%',
