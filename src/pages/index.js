@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Button, Flex } from 'theme-ui'
-
-const dataUrl = process.env.GATSBY_STAGE
-  ? `.netlify/functions/getAuthToken`
-  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/getAuthToken`
-
-const postTweetUrl = process.env.GATSBY_STAGE
-  ? `.netlify/functions/postTweet`
-  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/postTweet`
-
-const notifyUrl = process.env.GATSBY_STAGE
-  ? `.netlify/functions/notify`
-  : `https://charming-snickerdoodle-12baa5.netlify.app/.netlify/functions/notify`
+import { dataUrl, postTweetUrl, notifyUrl } from '../utils/urls'
 
 const IndexPage = () => {
   // Hard-coding broadcast channels, but envision that these would come from some other source/config file
@@ -19,15 +8,17 @@ const IndexPage = () => {
 
   // Setting state values w/ hooks where appropriate
   const [authedStatus, setAuthedStatus] = useState(false)
-  const [broadcastInput, setBroadcastInput] = useState('')
+  const [broadcastTitle, setBroadcastTitle] = useState('')
+  const [broadcastBody, setBroadcastBody] = useState('')
   const [selectedBroadcastChannels, setSelectedBroadcastChannels] = useState(
     broadcastChannels.map((channel) => {
       return { channelName: channel, channelSelected: false }
     }),
   )
 
-  // Handle initial Twitter token request
-  const handleAuthButtonClick = async () => {
+  // // // Twitter Related Functions // // //
+  // Initiate twitter auth flow
+  const initiateTwitterAuthFlow = async () => {
     try {
       const res = await fetch(dataUrl)
       const data = await res.json()
@@ -47,32 +38,18 @@ const IndexPage = () => {
     }
   }
 
-  // Control tweet text input
-  const handleInputChange = (event) => {
-    setBroadcastInput(event)
-  }
-
-  // Control checkbox inputs
-  const handleChannelSelect = (selectedChannelName) => {
-    const updatedChannelSelection = selectedBroadcastChannels.map((channel) => {
-      if (channel.channelName === selectedChannelName) {
-        return { ...channel, channelSelected: !channel.channelSelected }
-      }
-
-      return channel
-    })
-
-    setSelectedBroadcastChannels(updatedChannelSelection)
-  }
-
   // Post tweet w/ postTweet endpoint
-  const handlePostTweet = async (event) => {
-    event.preventDefault()
+  const handlePostTweet = async () => {
+    // event.preventDefault()
     let twitterAccessToken = localStorage.getItem('oauthAccessToken')
     let twitterAccessTokenSecret = localStorage.getItem(
       'oauthAccessTokenSecret',
     )
-    let tweetBody = broadcastInput
+
+    let tweetBody = broadcastTitle
+
+    console.log('The tweet body: ', tweetBody)
+
     const res = await fetch(postTweetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -86,19 +63,73 @@ const IndexPage = () => {
     console.log('Data that came back from Post Tweet: ', data)
   }
 
-  // Post data to Courier to send email, sms, or update the SBD Courier notification panel
-  const handleNotify = async () => {
-    const res = await fetch(notifyUrl)
-    const data = await res.json()
-    console.log('Data from notify route: ', data)
+  // // // Control form inputs // // //
+  // Handle title input change
+  const handleBroadcastTitleChange = (event) => {
+    setBroadcastTitle(event)
+  }
+
+  // Handle body input change
+  const handleBroadcastBodyChange = (event) => {
+    setBroadcastBody(event)
+  }
+
+  // Control checkbox inputs
+  const handleChannelSelect = (selectedChannelName) => {
+    const updatedChannelSelection = selectedBroadcastChannels.map((channel) => {
+      if (channel.channelName === selectedChannelName) {
+        // Initiate twitter auth flow
+        if (selectedChannelName === 'twitter' && !authedStatus) {
+          initiateTwitterAuthFlow()
+        }
+
+        return { ...channel, channelSelected: !channel.channelSelected }
+      }
+
+      return channel
+    })
+
+    setSelectedBroadcastChannels(updatedChannelSelection)
+  }
+
+  // Handle form reset
+  const handleFormReset = () => {
+    setBroadcastTitle('')
+    setBroadcastBody('')
+    let defaultChannelSelections = selectedBroadcastChannels.map((channel) => {
+      return { ...channel, channelSelected: false }
+    })
+
+    setSelectedBroadcastChannels(defaultChannelSelections)
   }
 
   // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault()
-    console.log('Form submission attempted')
-    console.log('Text area values: ', broadcastInput)
-    console.log('Channel selection info: ', selectedBroadcastChannels)
+
+    let channelsToSend = selectedBroadcastChannels.filter((channel) => {
+      if (channel.channelSelected) {
+        return channel
+      }
+      return
+    })
+
+    if (channelsToSend.filter(channel => channel.channelName === 'twitter')) {
+      handlePostTweet()
+    }
+
+    // let notificationData = {
+    //   broadcastTitle,
+    //   broadcastBody,
+    //   channelsToSend,
+    // }
+
+    // const res = await fetch(notifyUrl, {
+    //   method: 'POST',
+    //   body: JSON.stringify(notificationData),
+    // })
+
+    // console.log('The res from the notify function: ', res)
   }
 
   // Check if correct tokens exist to use twitter Api and control UI
@@ -181,7 +212,38 @@ const IndexPage = () => {
               }}
             >
               <label
-                htmlFor="tweet-body"
+                htmlFor="notification-title"
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '0px',
+                  marginBottom: '25px',
+                }}
+              >
+                Safety Message Title:
+                <textarea
+                  name="notification-title"
+                  maxLength="280"
+                  type="text"
+                  value={broadcastTitle}
+                  placeholder={'Add a title'}
+                  onChange={(event) =>
+                    handleBroadcastTitleChange(event.target.value)
+                  }
+                  style={{
+                    marginTop: '10px',
+                    borderRadius: '0.5rem',
+                    border: '2px solid lightgray',
+                    resize: 'none',
+                    padding: '0.5rem',
+                    fontFamily: 'sans-serif',
+                    marginBottom: '0px',
+                  }}
+                />
+              </label>
+              <label
+                htmlFor="notification-body"
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -189,14 +251,16 @@ const IndexPage = () => {
                   padding: '0px',
                 }}
               >
-                Safety Message:
+                Safety Message Body:
                 <textarea
-                  name="tweet-body"
+                  name="notification-body"
                   maxLength="280"
                   type="text"
-                  value={broadcastInput}
-                  placeholder={'Add text'}
-                  onChange={(event) => handleInputChange(event.target.value)}
+                  value={broadcastBody}
+                  placeholder={'Add a body'}
+                  onChange={(event) =>
+                    handleBroadcastBodyChange(event.target.value)
+                  }
                   style={{
                     marginTop: '10px',
                     borderRadius: '0.5rem',
@@ -220,7 +284,12 @@ const IndexPage = () => {
                 <legend>Choose Broadcast Channels:</legend>
                 {selectedBroadcastChannels.map((channel, index) => {
                   return (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
                       <input
                         key={index}
                         type="checkbox"
@@ -235,6 +304,20 @@ const IndexPage = () => {
                       <label htmlFor={channel.channelName}>
                         {channel.channelName}
                       </label>
+                      {channel.channelName === 'twitter' && (
+                        <p
+                          style={{
+                            fontSize: '0.75rem',
+                            fontStyle: 'italic',
+                            marginBottom: '0px',
+                            marginLeft: '10px',
+                          }}
+                        >
+                          {authedStatus
+                            ? '(Authenticated)'
+                            : '(Not authenticated)'}
+                        </p>
+                      )}
                     </div>
                   )
                 })}
@@ -248,13 +331,15 @@ const IndexPage = () => {
                   gap: '10px',
                 }}
               >
-                <Button variant="naked">Cancel</Button>
+                <Button variant="naked" onClick={handleFormReset}>
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
                   variant="secondary"
                   sx={{ width: '125px' }}
                 >
-                  Preview
+                  Submit
                 </Button>
               </Flex>
             </Flex>

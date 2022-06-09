@@ -1,23 +1,32 @@
 import { CourierClient } from '@trycourier/courier'
 import uuid4 from 'uuid4'
 
-exports.handler = async function ({ event, context, callback }) {
+exports.handler = async function (event, context, callback) {
   try {
-    // const courier = CourierClient({
-    //   authorizationToken: process.env.COURIER_AUTH_TOKEN,
-    // })
-    // console.log('Courier event: ', process.env.COURIER_TWILIO_NOTIFICATION_ID)
-    // const { requestId } = await courier.send({
-    //   message: {
-    //     template: process.env.COURIER_TWILIO_NOTIFICATION_ID,
-    //     to: {
-    //       phone_number: '4802749288',
-    //       email: 'anthony@yourwatchtower.com',
-    //     },
-    //   },
-    // })
+    // Parse data posted from front end
+    let clientData = JSON.parse(event.body)
+    console.log('Client data from front end: ', clientData)
 
-    // console.log('The request id from the courier interaction: ', requestId)
+    if (clientData.channelsToSend[0].channelName === 'text') {
+      const courier = CourierClient({
+        authorizationToken: process.env.COURIER_AUTH_TOKEN,
+      })
+      console.log('Courier event: ', process.env.COURIER_TWILIO_NOTIFICATION_ID)
+      const { requestId } = await courier.send({
+        message: {
+          template: process.env.COURIER_TWILIO_NOTIFICATION_ID,
+          to: {
+            phone_number: '4802749288',
+          },
+          data: {
+            messageTitle: clientData.broadcastTitle,
+            messageBody: clientData.broadcastBody,
+          },
+        },
+      })
+
+      console.log('The request id from the courier interaction: ', requestId)
+    }
 
     // Return data to front end
     return {

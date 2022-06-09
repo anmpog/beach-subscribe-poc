@@ -6,6 +6,7 @@ const OAuth = require('oauth-1.0a')
 
 exports.handler = async function (event, context, callback) {
   // // // Step 3 - POST oauth/access_token // // //
+  console.log('The postTweet function was hit.')
   let clientData = JSON.parse(event.body)
 
   // Tweet body
