@@ -9,18 +9,25 @@ const IndexPage = () => {
   // Setting state values w/ hooks where appropriate
   const [authedStatus, setAuthedStatus] = useState(false)
   const [broadcastTitle, setBroadcastTitle] = useState('')
+
+  // *REVIEW* PublicDashboard.js (post public bulletin function) should cover functionality of the actual text inputs, will need a title field as existing UI
+  // does not have a title field.
   const [broadcastBody, setBroadcastBody] = useState('')
+  // *REVIEW* // 
+
+  // *REVIEW* Will need to add checkbox inputs to existing UI
   const [selectedBroadcastChannels, setSelectedBroadcastChannels] = useState(
     broadcastChannels.map((channel) => {
       return { channelName: channel, channelSelected: false }
     }),
   )
+  // *REVIEW //
 
   // // // Twitter Related Functions // // //
   // Initiate twitter auth flow
   const initiateTwitterAuthFlow = async () => {
     try {
-      const res = await fetch(dataUrl)
+      const res = await fetch(n )
       const data = await res.json()
       const params = new URLSearchParams(data)
       const authToken = params.get('oauth_token')
@@ -47,8 +54,6 @@ const IndexPage = () => {
     )
 
     let tweetBody = broadcastTitle
-
-    console.log('The tweet body: ', tweetBody)
 
     const res = await fetch(postTweetUrl, {
       method: 'POST',
